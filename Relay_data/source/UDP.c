@@ -26,7 +26,7 @@ double *buf_rx;
 unsigned char *str_rx_prime;
 double *buf_rx_prime;
 double stamp;
-double stamp_leg1,stamp_leg2,stamp_leg3,stamp_leg4;
+double time_stamp;
 
 pthread_t ThreadUDPsnd;
 pthread_t ThreadUDPrcv;
@@ -210,7 +210,7 @@ void *UDPrcv(void *UDPrcv)
 		else if(len > 0)
 		{
 			clock_gettime(CLOCK_MONOTONIC,&t_m);
-			stamp_leg1 = (double)t_m.tv_sec*NSEC_PER_SEC+(double)t_m.tv_nsec;
+			time_stamp = (double)t_m.tv_sec*NSEC_PER_SEC+(double)t_m.tv_nsec;
 			memcpy(buf_rx,(double *)str_rx,sizeof(double)*(dv*4+5));
 			FlagRcv = 1;
 		}

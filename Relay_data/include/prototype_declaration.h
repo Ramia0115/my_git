@@ -11,10 +11,7 @@ int savedata(void);
 //UDP.c
 int Init_UDP(void);
 void *UDPsnd(void *UDPsnd);
-void *UDPrcv4Leg1(void *UDPrcv);
-void *UDPrcv4Leg2(void *UDPrcv);
-void *UDPrcv4Leg3(void *UDPrcv);
-void *UDPrcv4Leg4(void *UDPrcv);
+void *UDPrcv(void *UDPrcv);
 void *UDPrcv4Prime(void *UDPrcv);
 void *UDPrcv_sq(void *UDPrcv);
 
@@ -25,6 +22,16 @@ bool kbhit();
 char linux_getch();
 void *Check_kb(void *chkb);
 
+//sci.c
+int open_serial_port(void);
+int close_serial_port(void);
+int get_serial_char(unsigned char c[]);
+int put_serial_char(unsigned char c[], int rqbyte);
+void *SCIsnd(void *SCIsnd);
+void *SCIrcv(void *SCIrcv);
+
 //core.c
 int initialization(void);
 void print_error(int error_code);
+void modify_pos(double x_prime_init[]);
+void get_wheelvel(double x,double *vx,int number);

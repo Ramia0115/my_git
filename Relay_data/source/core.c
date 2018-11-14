@@ -21,21 +21,16 @@
 #include "cgmres_body.h"
 #include "setting.h"
 
-extern double x_body[3];
-extern double leg_xy[4][2];
-extern double leg_joint_angle[4][3];
-extern double u_b_opt[dv][DIMUCB];
-extern double u_l_opt[WHEEL_NUM][dv][DIMUC];
 extern int cnt;
 extern int opt_cnt;
 extern int FlagUDP;
 extern int StartFlag;
 extern int FlagRcv;
 extern int sendcnt;
+extern int sendcnt_sci;
 extern double *buf_tx;
 extern double *buf_rx;
-
-extern pthread_t ThreadUDPrcv_sq;
+extern float *buf_tx_sci;
 
 int FlagMain = 0;
 double sim_dt = 0.018;
@@ -47,12 +42,15 @@ int main (void)
 	int check;
 	int error_num;
 	double *top_addr;
+	float *top_addrf;
 	int legnum_tmp;
 
 	struct timespec t;
 	double start,opt_start;
 	double rt_time;
 	int sleep_cnt;
+
+	double leg_xy[4] = {0.0},angle[4][3] = {0.0};
 
 	int i,j;
 
@@ -94,23 +92,36 @@ int main (void)
 			break;
 		}
 
-		top_addr = buf_tx;
-		*buf_tx++ = x_body[0];
-		*buf_tx++ = x_body[1];
-		*buf_tx++ = x_body[2];
-		for(i=0;i<dv;i++)
+		if(FlagRcv == 1)
 		{
-			*buf_tx++ = u_b_opt[i][0];
-			*buf_tx++ = u_b_opt[i][1];
-			*buf_tx++ = u_b_opt[i][2];
+			top_addr = buf_rx;
+			for(i=0;i<4;i++)
+			{
+				leg_xy[i] = *buf_rx++;
+				angle[i][0] = *buf_rx++;
+				angle[i][1] = *buf_rx++;
+				angle[i][2] = *buf_rx++;
+			}
+			buf_rx = top_addr;
+
+			top_addrf = buf_tx_sci;
+			for(i=0;i<4;i++)
+			{
+				*buf_tx_sci++ = (float)leg_xy[i];
+				*buf_tx_sci++ = (float)angle[i][0];
+				*buf_tx_sci++ = (float)angle[i][1];
+				*buf_tx_sci++ = (float)angle[i][2];
+			}
+			buf_tx_sci = top_addrf;
+			sendcnt_sci++;
 		}
-		buf_tx = top_addr;
 
 		sendcnt++;
 		opt_cnt++;
 	}
 
 	KB_close();
+	check = close_serial_port();
 	check = savedata();
 
 	return 0;
@@ -126,7 +137,7 @@ int initialization(void)
 	flag_udp = Init_UDP();
 	sleep(1);
 
-	flag_sci = 1;
+	flag_sci = open_serial_port();
 
 	flag_kb =1;
 
