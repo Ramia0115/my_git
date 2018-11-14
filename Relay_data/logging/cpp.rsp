@@ -1,0 +1,1 @@
+-nologo -D__MATX__=1 -C -P "-IC:\local\TITECH\MaTX-VC\inputs" -DMSVC=12 -Tc "C:\local\TITECH\MaTX-VC\inputs\MaTXOUT.mm"

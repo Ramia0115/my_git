@@ -1,0 +1,38 @@
+open 192.168.120.200
+pi
+raspberry
+cd current
+cd PRS_DMPC
+cd sim_partitionedMPC
+cd With_UDP
+cd Body
+put Makefile
+cd source
+lcd source
+put agex.c
+put agex_body.c
+put cgmres.c
+put cgmres_body.c
+put core.c
+put kbhit.c
+put my_math.c
+put myfunc.c
+put obstacle_detection.c
+put optimization.c
+put rhfuncu.c
+put UDP.c
+cd ../include
+lcd ../include
+put agex.h
+put agex_body.h
+put cgmres.h
+put cgmres_body.h
+put main.h
+put my_math.h
+put myfunc.h
+put obstacle_detection.h
+put prototype_declaration.h
+put PRS.h
+put rhfuncu.h
+put setting.h
+bye
