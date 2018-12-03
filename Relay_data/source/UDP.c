@@ -10,7 +10,6 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "agex.h"
 #include "prototype_declaration.h"
 #include "setting.h"
 
@@ -39,6 +38,7 @@ int Init_UDP(void)
 	int build_rcv = 0;
 	
 	printf("Create thread for udp communication.\n");
+	/*
 	build_th = pthread_create(&ThreadUDPsnd,NULL,UDPsnd,NULL);
 	if(build_th != 0)
 	{
@@ -49,6 +49,7 @@ int Init_UDP(void)
 		return 0;
 	}
 	sleep(1);
+	*/
 	build_rcv = pthread_create(&ThreadUDPrcv,NULL,UDPrcv,NULL);
 	if(build_rcv != 0)
 	{
@@ -56,7 +57,6 @@ int Init_UDP(void)
 		print_error(error_num);
 		FlagUDP = 0;
 	}
-	sleep(1);
 
 	if(build_th+build_rcv == 0)
 	{
@@ -128,9 +128,9 @@ void *UDPsnd(void *UDPsnd)
 		{
 			clock_gettime(CLOCK_MONOTONIC,&t_m);
 			stamp = (double)t_m.tv_sec*NSEC_PER_SEC+(double)t_m.tv_nsec;
-			memcpy(str_tx,(unsigned char *)buf_tx,sizeof(double)*(dv*3+3));
-			len = sendto(sock_snd,str_tx,sizeof(double)*(dv*3+3),0,(struct sockaddr *)&server,sizeof(server));
-			if(len != sizeof(double)*(dv*3+3))
+			memcpy(str_tx,(unsigned char *)buf_tx,sizeof(double)*(10*3+3));
+			len = sendto(sock_snd,str_tx,sizeof(double)*(10*3+3),0,(struct sockaddr *)&server,sizeof(server));
+			if(len != sizeof(double)*(10*3+3))
 			{
 				error_num = errno;
 				print_error(error_num);
@@ -199,7 +199,7 @@ void *UDPrcv(void *UDPrcv)
 	while(FlagUDP)
 	{
 		memset(str_rx,0,sizeof(str_rx));
-		len = recvfrom(sock_rcv,str_rx,sizeof(double)*(dv*4+5),0,NULL,0);
+		len = recvfrom(sock_rcv,str_rx,sizeof(double)*(4*4),0,NULL,0);
 		if(len == -1)
 		{
 			error_num = errno;
@@ -211,7 +211,7 @@ void *UDPrcv(void *UDPrcv)
 		{
 			clock_gettime(CLOCK_MONOTONIC,&t_m);
 			time_stamp = (double)t_m.tv_sec*NSEC_PER_SEC+(double)t_m.tv_nsec;
-			memcpy(buf_rx,(double *)str_rx,sizeof(double)*(dv*4+5));
+			memcpy(buf_rx,(double *)str_rx,sizeof(double)*(4*4));
 			FlagRcv = 1;
 		}
 	}

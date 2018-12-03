@@ -15,15 +15,11 @@
 #include <pthread.h>
 
 #include "prototype_declaration.h"
-#include "agex.h"
-#include "agex_body.h"
-#include "cgmres.h"
-#include "cgmres_body.h"
 #include "setting.h"
 
 extern int cnt;
-extern int opt_cnt;
 extern int FlagUDP;
+extern int FlagSCI;
 extern int StartFlag;
 extern int FlagRcv;
 extern int sendcnt;
@@ -34,6 +30,10 @@ extern float *buf_tx_sci;
 
 int FlagMain = 0;
 double sim_dt = 0.018;
+double leg_xy[4] = {0.0},angle[4][3] = {0.0};
+int cols,rows;
+double **logging_snd;
+int cnt;
 
 int main (void)
 {
@@ -50,8 +50,6 @@ int main (void)
 	double rt_time;
 	int sleep_cnt;
 
-	double leg_xy[4] = {0.0},angle[4][3] = {0.0};
-
 	int i,j;
 
 	printf("Initialization start.\n");
@@ -62,10 +60,12 @@ int main (void)
 		printf("Initialization succeeded.\n");
 	}
 
+	/*
 	while(!StartFlag)
 	{
 		usleep(1000);
 	}
+	*/
 
 	printf("Start main-loop.\n");
 	clock_gettime(CLOCK_MONOTONIC,&t);
@@ -84,13 +84,6 @@ int main (void)
 		}
 
 		rt_time = (opt_start-start)/NSEC_PER_SEC;
-
-		if(rt_time > 20.0 || !StartFlag)
-		{
-			FlagUDP = 0;
-			FlagMain = 0;
-			break;
-		}
 
 		if(FlagRcv == 1)
 		{
@@ -114,15 +107,13 @@ int main (void)
 			}
 			buf_tx_sci = top_addrf;
 			sendcnt_sci++;
+			data_logging(rt_time);
 		}
-
-		sendcnt++;
-		opt_cnt++;
 	}
 
 	KB_close();
 	check = close_serial_port();
-	check = savedata();
+	savedata();
 
 	return 0;
 }
@@ -137,18 +128,99 @@ int initialization(void)
 	flag_udp = Init_UDP();
 	sleep(1);
 
+	FlagSCI = 1;
 	flag_sci = open_serial_port();
 
 	flag_kb =1;
 
-	flag_log = init_optimization();
+	flag_log = init_logging();
 
 	return flag_udp*flag_sci*flag_kb*flag_log;
 }
 
 void print_error(int error_code)
 {
-	printf("Calling function is failed.\n");
 	printf("print error string : %s\n",strerror(error_code));
 	printf("print error code : %d\n",error_code);
+}
+
+int init_logging(void)
+{
+	int log_cnt;
+	int col_cnt;
+	int i,j;
+
+	log_cnt = MAXLOGGINGNUM;
+
+	printf("Memory allocation start.\n");
+	rows = log_cnt+1;
+	cols = 4*4+1;
+	logging_snd = (double **)malloc(rows*sizeof(double));
+	for(i=0;i<rows;i++)
+	{
+		logging_snd[i] = (double *)malloc(cols*sizeof(double));
+	}
+	for(i=0;i<cols;i++)
+	{
+		for(j=0;j<rows;j++)
+		{
+			logging_snd[j][i] = 0.0;
+		}
+	}
+	col_cnt = 0;
+	cnt = 0;
+
+	logging_snd[cnt][col_cnt++] = 0.0;
+
+	for(i=0;i<4;i++)
+	{
+		logging_snd[cnt][col_cnt++] = 0.0;
+		logging_snd[cnt][col_cnt++] = 0.0;
+		logging_snd[cnt][col_cnt++] = 0.0;
+		logging_snd[cnt][col_cnt++] = 0.0;
+	}
+
+	printf("finish.\n");
+
+	return 1;
+}
+
+void data_logging(double rt_time)
+{
+	int i,j;
+	int col_cnt;
+
+	col_cnt = 0;
+
+	logging_snd[cnt][col_cnt++] = rt_time;
+
+	for(i=0;i<4;i++)
+	{
+		logging_snd[cnt][col_cnt++] = leg_xy[i];
+		logging_snd[cnt][col_cnt++] = angle[i][0];
+		logging_snd[cnt][col_cnt++] = angle[i][1];
+		logging_snd[cnt][col_cnt++] = angle[i][2];
+	}
+
+	cnt++;
+}
+
+void savedata(void)
+{
+	FILE *fp;
+	int i,j;
+
+	printf("saving data.\n");
+	fp = fopen("logging.mat","w");
+	for(i=0;i<cnt;i++)
+	{
+		for(j=0;j<cols;j++)
+		{
+			fprintf(fp,"%lf\t",logging_snd[i][j]);
+		}
+		fprintf(fp,"\n");
+	}
+	fclose(fp);
+
+	printf("finish,\n");
 }

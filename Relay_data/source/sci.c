@@ -35,28 +35,30 @@ int open_serial_port(void)
 	int check;
 
 	fd_sci = open(DEVICE,O_RDWR | O_NOCTTY);
-	/*
+	///*
 	if(fd_sci == -1)
 	{
+		printf("Calling fucntion 'open' is failed @open_serial_port function.\n");
 		error_num = errno;
 		print_error(error_num);
 
 		FlagSCI = 0;
 		return 0;
 	}
-	*/
+	//*/
 
 	check = tcgetattr(fd_sci,&sci_oldtio);
-	/*
+	///*
 	if(check == -1)
 	{
+		printf("Calling function 'tcgetattr' is failed @serial_port function.\n");
 		error_num = errno;
 		print_error(error_num);
 
 		FlagSCI = 0;
 		return 0;
 	}
-	*/
+	//*/
 
 	bzero(&newtio,sizeof(newtio));
 
@@ -71,31 +73,34 @@ int open_serial_port(void)
 	newtio.c_cc[VMIN] = 1;
 
 	check = tcflush(fd_sci,TCIFLUSH);
-	/*
+	///*
 	if(check == -1)
 	{
+		printf("Calling function 'tcflush' is failed @serial_port function.\n");
 		error_num = errno;
 		print_error(error_num);
 
 		FlagSCI = 0;
 		return 0;
 	}
-	*/
+	//*/
 
 	check = tcsetattr(fd_sci,TCSANOW,&newtio);
-	/*
+	///*
 	if(check = -1)
 	{
+		printf("Calling function 'tcsetattr' is failed @serial_port function.\n");
 		error_num = errno;
 		print_error(error_num);
 
 		FlagSCI = 0;
 		return 0;
 	}
-	*/
+	//*/
 
 	printf("Opening and setting device success.\n");
 
+	/*
 	check = pthread_create(&ThreadRcv,NULL,SCIrcv,NULL);
 	if(check != 0)
 	{
@@ -106,6 +111,7 @@ int open_serial_port(void)
 		return 0;
 	}
 	sleep(1);
+	*/
 	check = pthread_create(&ThreadSnd,NULL,SCIsnd,NULL);
 	if(check != 0)
 	{
@@ -127,7 +133,7 @@ int close_serial_port(void)
 	check = tcsetattr(fd_sci,TCSANOW,&sci_oldtio);
 	if(check == -1)
 	{
-		printf("@close_serial_port.\n");
+		printf("Calling function 'tcsetattr' is failed @close_serial_port.\n");
 		error_num = errno;
 		print_error(error_num);
 		return 0;
@@ -145,6 +151,7 @@ int get_serial_char(unsigned char c[])
 	readbyte = read(fd_sci,c,1);
 	if(readbyte != 1)
 	{
+		printf("Calling fuction 'read' is failed @get_serial_cahr.\n");
 		error_num = errno;
 		print_error(error_num);
 	}
@@ -160,7 +167,7 @@ int put_serial_char(unsigned char c[], int rqbyte)
 	sendbyte = write(fd_sci,c,rqbyte);
 	if(sendbyte != rqbyte)
 	{
-		printf("@put_serial_char.\n");
+		printf("Calling function 'write' is failed @put_serial_char.\n");
 		error_num = errno;
 		print_error(error_num);
 	}
